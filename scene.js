@@ -134,7 +134,7 @@ function neutral_position() {
 
 function neutral_talking(play) {
 
-    const arm1 = sceneElements.sceneGraph.getObjectByName("arm1");
+    const arm1pivot = sceneElements.sceneGraph.getObjectByName("arm1pivot");
     const arm2 = sceneElements.sceneGraph.getObjectByName("arm2");
 
     const shoulder1 = sceneElements.sceneGraph.getObjectByName("shoulder1");
@@ -153,8 +153,9 @@ function neutral_talking(play) {
     neutral_talking_head.to(head.rotation, { x: -0.1, duration: gsap.utils.random(0.25, 0.5, 0.05) });
     neutral_talking_head.to(head.rotation, { z: 0, duration: gsap.utils.random(0.25, 0.5, 0.05) });
 
-    // neutral_talking_arms.to(arm1.rotation, { x: 0.1, duration: 1 });
-    // neutral_talking_arms.to(arm1.rotation, { x: -0.1, duration: 1 });
+    
+    neutral_talking_arms.to(arm1pivot.rotation, { x: 0.1, duration: 1 });
+    neutral_talking_arms.to(arm1pivot.rotation, { x: -0.1, duration: 1 });
 
     if (play) {
         neutral_talking_head.play();
@@ -322,6 +323,8 @@ function load3DObjects(sceneGraph) {
     const arms = new THREE.Group();
     const arm1_group = new THREE.Group();
     const arm2_group = new THREE.Group();
+    const upperarm1_group = new THREE.Group();
+    const upperarm2_group = new THREE.Group();
     const forearm1_group = new THREE.Group();
     const forearm2_group = new THREE.Group();
 
@@ -356,18 +359,29 @@ function load3DObjects(sceneGraph) {
     const hand2 = new THREE.Mesh(hand_and_elbow_geometry, material_torso2);
     hand2.position.set(3, 0.515, 0);
 
+    upperarm1_group.add(arm1, elbow1);
+    upperarm1_group.name = "upperarm1";
     forearm1_group.add(forearm1, hand1);
-    arm1_group.add(shoulder1, arm1, elbow1, forearm1, hand1);
-    arm1_group.name = "arm1";
-    arm1_group.translate(3, 2, 0);
     forearm1_group.name = "forearm1";
+    arm1_group.add(shoulder1, upperarm1_group, forearm1_group);
+
+    arm1_group.name = "arm1";
     arm1_group.position.set(-2.3, 0.4, 0);
     arm1_group.scale.set(1.2, 1.2, 1.2);
 
+    const arm1pivot = new THREE.Group();
+    arm1pivot.name = "arm1pivot";
+    shoulder1.add(arm1pivot);
+    arm1pivot.add(upperarm1_group, forearm1_group);
+
+
+    upperarm2_group.add(arm2, elbow2);
+    upperarm2_group.name = "upperarm2";
     forearm2_group.add(forearm2, hand2);
-    arm2_group.add(shoulder2, arm2, elbow2, forearm2, hand2);
-    arm2_group.name = "arm2";
     forearm2_group.name = "forearm2";
+    arm2_group.add(shoulder2, upperarm2_group, forearm2_group);
+    
+    arm2_group.name = "arm2";
     arm2_group.position.set(-4.9, 0.4, 0);
     arm2_group.scale.set(1.2, 1.2, 1.2);
 
