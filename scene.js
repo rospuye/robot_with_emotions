@@ -135,6 +135,7 @@ function neutral_position() {
 function neutral_talking(play) {
 
     const arm1pivot = sceneElements.sceneGraph.getObjectByName("arm1pivot");
+    const arm1 = sceneElements.sceneGraph.getObjectByName("arm1");
     const arm2 = sceneElements.sceneGraph.getObjectByName("arm2");
 
     const shoulder1 = sceneElements.sceneGraph.getObjectByName("shoulder1");
@@ -154,8 +155,8 @@ function neutral_talking(play) {
     neutral_talking_head.to(head.rotation, { z: 0, duration: gsap.utils.random(0.25, 0.5, 0.05) });
 
     
-    neutral_talking_arms.to(arm1pivot.rotation, { x: 0.1, duration: 1 });
-    neutral_talking_arms.to(arm1pivot.rotation, { x: -0.1, duration: 1 });
+    neutral_talking_arms.to(arm1.rotation, { x: 0.5, duration: 1 });
+    neutral_talking_arms.to(arm1.rotation, { x: -0.5, duration: 1 });
 
     if (play) {
         neutral_talking_head.play();
@@ -341,39 +342,40 @@ function load3DObjects(sceneGraph) {
 
     const arm1 = new THREE.Mesh(arm_part_geometry, material_torso);
     arm1.position.set(3, 1.587, 0);
+    arm1.name = "arm1";
+    shoulder1.add(arm1);
     const arm2 = new THREE.Mesh(arm_part_geometry, material_torso);
     arm2.position.set(3, 1.587, 0);
 
-    const elbow1 = new THREE.Mesh(hand_and_elbow_geometry, material_torso2);
-    elbow1.position.set(3, 1.194, 0);
+    // const elbow1 = new THREE.Mesh(hand_and_elbow_geometry, material_torso2);
+    // elbow1.position.set(3, 1.194, 0);
     const elbow2 = new THREE.Mesh(hand_and_elbow_geometry, material_torso2);
     elbow2.position.set(3, 1.194, 0);
 
-    const forearm1 = new THREE.Mesh(arm_part_geometry, material_torso);
-    forearm1.position.set(3, 0.872, 0);
+    // const forearm1 = new THREE.Mesh(arm_part_geometry, material_torso);
+    // forearm1.position.set(3, 0.872, 0);
     const forearm2 = new THREE.Mesh(arm_part_geometry, material_torso);
     forearm2.position.set(3, 0.872, 0);
 
-    const hand1 = new THREE.Mesh(hand_and_elbow_geometry, material_torso2);
-    hand1.position.set(3, 0.515, 0);
+    // const hand1 = new THREE.Mesh(hand_and_elbow_geometry, material_torso2);
+    // hand1.position.set(3, 0.515, 0);
     const hand2 = new THREE.Mesh(hand_and_elbow_geometry, material_torso2);
     hand2.position.set(3, 0.515, 0);
 
-    upperarm1_group.add(arm1, elbow1);
-    upperarm1_group.name = "upperarm1";
-    forearm1_group.add(forearm1, hand1);
-    forearm1_group.name = "forearm1";
-    arm1_group.add(shoulder1, upperarm1_group, forearm1_group);
+    // upperarm1_group.add(arm1, elbow1);
+    // upperarm1_group.name = "upperarm1";
+    // forearm1_group.add(forearm1, hand1);
+    // forearm1_group.name = "forearm1";
+    // arm1_group.add(shoulder1, upperarm1_group, forearm1_group);
 
-    arm1_group.name = "arm1";
+    arm1_group.add(shoulder1, arm1);
     arm1_group.position.set(-2.3, 0.4, 0);
     arm1_group.scale.set(1.2, 1.2, 1.2);
 
-    const arm1pivot = new THREE.Group();
-    arm1pivot.name = "arm1pivot";
-    shoulder1.add(arm1pivot);
-    arm1pivot.add(upperarm1_group, forearm1_group);
-
+    // const arm1pivot = new THREE.Group();
+    // arm1pivot.name = "arm1pivot";
+    // shoulder1.add(arm1pivot);
+    // arm1pivot.add(arm1);
 
     upperarm2_group.add(arm2, elbow2);
     upperarm2_group.name = "upperarm2";
