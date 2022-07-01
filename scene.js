@@ -32,16 +32,23 @@ const textureLoader = new THREE.TextureLoader(loadingManager)
 
 // textures
 const water_texture = textureLoader.load('/textures/water.jpg')
+
 const grass_texture = textureLoader.load('/textures/grass.jpg')
 grass_texture.repeat.x = 5
 grass_texture.repeat.y = 5
 grass_texture.wrapS = THREE.RepeatWrapping
 grass_texture.wrapT = THREE.RepeatWrapping
+
 const tiles_texture = textureLoader.load('/textures/tiles.jpg')
 tiles_texture.repeat.x = 2
 tiles_texture.repeat.y = 2
 tiles_texture.wrapS = THREE.RepeatWrapping
 tiles_texture.wrapT = THREE.RepeatWrapping
+
+const bricksColorTexture = textureLoader.load('/textures/bricks/color.jpg')
+const bricksAmbientOcclusionTexture = textureLoader.load('/textures/bricks/ambientOcclusion.jpg')
+const bricksNormalTexture = textureLoader.load('/textures/bricks/normal.jpg')
+const bricksRoughnessTexture = textureLoader.load('/textures/bricks/roughness.jpg')
 
 // animation timelines
 let talking_head_movements = gsap.timeline({ repeat: -1, repeatDelay: 0 });
@@ -700,6 +707,31 @@ function load3DObjects(sceneGraph) {
     sceneGraph.add(planeObject2);
 
     // ************************** //
+    // Create walls
+    // ************************** //
+
+    const wallMaterial = new THREE.MeshStandardMaterial({
+        map: bricksColorTexture,
+        aoMap: bricksAmbientOcclusionTexture,
+        normalMap: bricksNormalTexture,
+        roughnessMap: bricksRoughnessTexture,
+        side: THREE.DoubleSide
+    })
+
+    //  new THREE.MeshPhongMaterial({ map: grass_texture, side: THREE.DoubleSide });
+    const wallObject = new THREE.Mesh(planeGeometry, wallMaterial);
+    sceneGraph.add(wallObject);
+    wallObject.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 2);
+    wallObject.receiveShadow = true;
+    wallObject.position.set(-15, 7.5, -7.5)
+
+    const wallObject2 = new THREE.Mesh(planeGeometry, wallMaterial);
+    sceneGraph.add(wallObject2);
+    wallObject2.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 2);
+    wallObject2.receiveShadow = true;
+    wallObject2.position.set(-22.5, 7.5, 0)
+
+    // ************************** //
     // Create the lake
     // ************************** //
 
@@ -1012,34 +1044,41 @@ function load3DObjects(sceneGraph) {
 
     // couch
     gltfLoader.load(
-        '/models/GlamVelvetSofa/glTF/GlamVelvetSofa.gltf',
+        '/models/Couch/scene.gltf',
         (gltf) => {
-            while(gltf.scene.children.length)
-            {
+            while (gltf.scene.children.length) {
                 let couch_part = gltf.scene.children[0]
-                if ( couch_part.material ) {
-                    couch_part.material.metalness = 0;
-                }
-                couch_part.scale.set(4,4,4)
-                couch_part.position.set(-13,0,-4)
+                couch_part.position.set(-13, 0.01, -4)
                 sceneGraph.add(couch_part)
             }
         }
     )
 
-    // // house_light
-    // gltfLoader.load(
-    //     '/models/LightsPunctualLamp/glTF/LightsPunctualLamp.gltf',
-    //     (gltf) => {
-    //         while(gltf.scene.children.length)
-    //         {
-    //             let house_light = gltf.scene.children[0]
-    //             house_light.scale.set(4,4,4)
-    //             house_light.position.set(-13,0,-4)
-    //             sceneGraph.add(house_light)
-    //         }
-    //     }
-    // )
+    // lamp
+    gltfLoader.load(
+        '/models/Lamp/scene.gltf',
+        (gltf) => {
+            while (gltf.scene.children.length) {
+                let lamp_part = gltf.scene.children[0]
+                lamp_part.position.set(-16, 0.01, -4)
+                lamp_part.scale.set(0.03, 0.03, 0.03)
+                sceneGraph.add(lamp_part)
+            }
+        }
+    )
+
+    // coffee table
+    gltfLoader.load(
+        '/models/CoffeeTable/scene.gltf',
+        (gltf) => {
+            while (gltf.scene.children.length) {
+                let table_part = gltf.scene.children[0]
+                table_part.position.set(-13, -1.35, 1)
+                // table_part.scale.set(0.03, 0.03, 0.03)
+                sceneGraph.add(table_part)
+            }
+        }
+    )
 
 }
 
