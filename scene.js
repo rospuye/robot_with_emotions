@@ -29,6 +29,7 @@ const gui = new dat.GUI();
 const gltfLoader = new THREE.GLTFLoader()
 const loadingManager = new THREE.LoadingManager()
 const textureLoader = new THREE.TextureLoader(loadingManager)
+let mixer = null // for fox model animation
 
 // textures
 const water_texture = textureLoader.load('/textures/water.jpg')
@@ -45,10 +46,25 @@ tiles_texture.repeat.y = 2
 tiles_texture.wrapS = THREE.RepeatWrapping
 tiles_texture.wrapT = THREE.RepeatWrapping
 
-const bricksColorTexture = textureLoader.load('/textures/bricks/color.jpg')
-const bricksAmbientOcclusionTexture = textureLoader.load('/textures/bricks/ambientOcclusion.jpg')
-const bricksNormalTexture = textureLoader.load('/textures/bricks/normal.jpg')
-const bricksRoughnessTexture = textureLoader.load('/textures/bricks/roughness.jpg')
+const wallColor = textureLoader.load('/textures/wall/wall_BaseColor.jpg')
+const wallAmbientOcclusion = textureLoader.load('/textures/wall/wall_AmbientOcclusion.jpg')
+const wallNormal = textureLoader.load('/textures/wall/wall_Normal.jpg')
+const wallRoughness = textureLoader.load('/textures/wall/wall_Roughness.jpg')
+const wallHeight = textureLoader.load('/textures/wall/wall_Height.png')
+
+const floorColor = textureLoader.load('/textures/floor/floor_Color.jpg')
+const floorAmbientOcclusion = textureLoader.load('/textures/floor/floor_AmbientOcclusion.jpg')
+const floorNormal = textureLoader.load('/textures/floor/floor_Normal.jpg')
+const floorRoughness = textureLoader.load('/textures/floor/floor_Roughness.jpg')
+const floorHeight = textureLoader.load('/textures/floor/floor_Height.png')
+
+const grassColor = textureLoader.load('/textures/grass/grass_Color.jpg')
+const grassAmbientOcclusion = textureLoader.load('/textures/grass/grass_AmbientOcclusion.jpg')
+const grassNormal = textureLoader.load('/textures/grass/grass_Normal.jpg')
+const grassRoughness = textureLoader.load('/textures/grass/grass_Roughness.jpg')
+const grassHeight = textureLoader.load('/textures/grass/grass_Height.png')
+
+const skyColor = textureLoader.load('/textures/sky.jpg')
 
 // animation timelines
 let talking_head_movements = gsap.timeline({ repeat: -1, repeatDelay: 0 });
@@ -82,6 +98,7 @@ let wave_arm2 = gsap.timeline({ repeat: 0, repeatDelay: 0 });
 
 let duck_movement = gsap.timeline({ repeat: -1, repeatDelay: 0 });
 
+// emotions on the debug UI
 const parameters = {
 
     // friendliness
@@ -325,10 +342,6 @@ calmness.add(parameters, 'calm')
 
 helper.initEmptyScene(sceneElements); // initialize the empty scene
 load3DObjects(sceneElements.sceneGraph); // add elements within the scene
-
-// // duck animation
-// let duck = sceneElements.sceneGraph.getObjectByName("duck");
-// // duck_movement.to(duck.position, { x: 5, duration: 5 });
 
 requestAnimationFrame(computeFrame); // animate
 
@@ -683,16 +696,24 @@ function eye_change(emotion) {
 
 //////////////////////////////////////////////////////////////////
 
-
 // Create and insert in the scene graph the models of the 3D scene
 function load3DObjects(sceneGraph) {
 
     // ************************** //
     // Create a ground plane
     // ************************** //
+
+    const grassMaterial = new THREE.MeshPhongMaterial({
+        map: grassColor,
+        aoMap: grassAmbientOcclusion,
+        normalMap: grassNormal,
+        roughnessMap: grassRoughness,
+        heightMap: grassHeight,
+        side: THREE.DoubleSide
+    })
+
     const planeGeometry = new THREE.PlaneGeometry(15, 15);
-    const planeMaterial = new THREE.MeshPhongMaterial({ map: grass_texture, side: THREE.DoubleSide });
-    const planeObject = new THREE.Mesh(planeGeometry, planeMaterial);
+    const planeObject = new THREE.Mesh(planeGeometry, grassMaterial);
     sceneGraph.add(planeObject);
 
     // Change orientation of the plane using rotation
@@ -700,8 +721,16 @@ function load3DObjects(sceneGraph) {
     // Set shadow property
     planeObject.receiveShadow = true;
 
-    const planeMaterial2 = new THREE.MeshPhongMaterial({ map: tiles_texture, side: THREE.DoubleSide });
-    const planeObject2 = new THREE.Mesh(planeGeometry, planeMaterial2);
+    const floorMaterial = new THREE.MeshPhongMaterial({
+        map: floorColor,
+        aoMap: floorAmbientOcclusion,
+        normalMap: floorNormal,
+        roughnessMap: floorRoughness,
+        heightMap: floorHeight,
+        side: THREE.DoubleSide
+    })
+
+    const planeObject2 = new THREE.Mesh(planeGeometry, floorMaterial);
     planeObject2.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
     planeObject2.position.x = -15
     sceneGraph.add(planeObject2);
@@ -710,15 +739,15 @@ function load3DObjects(sceneGraph) {
     // Create walls
     // ************************** //
 
-    const wallMaterial = new THREE.MeshStandardMaterial({
-        map: bricksColorTexture,
-        aoMap: bricksAmbientOcclusionTexture,
-        normalMap: bricksNormalTexture,
-        roughnessMap: bricksRoughnessTexture,
+    const wallMaterial = new THREE.MeshPhongMaterial({
+        map: wallColor,
+        aoMap: wallAmbientOcclusion,
+        normalMap: wallNormal,
+        roughnessMap: wallRoughness,
+        heightMap: wallHeight,
         side: THREE.DoubleSide
     })
 
-    //  new THREE.MeshPhongMaterial({ map: grass_texture, side: THREE.DoubleSide });
     const wallObject = new THREE.Mesh(planeGeometry, wallMaterial);
     sceneGraph.add(wallObject);
     wallObject.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 2);
@@ -732,6 +761,26 @@ function load3DObjects(sceneGraph) {
     wallObject2.position.set(-22.5, 7.5, 0)
 
     // ************************** //
+    // Create sky
+    // ************************** //
+
+    const skyMaterial = new THREE.MeshPhongMaterial({
+        map: skyColor,
+        side: THREE.DoubleSide
+    })
+
+    const skyObject = new THREE.Mesh(planeGeometry, skyMaterial);
+    sceneGraph.add(skyObject);
+    skyObject.receiveShadow = true;
+    skyObject.position.set(0, 7.5, -7.5)
+
+    const skyObject2 = new THREE.Mesh(planeGeometry, skyMaterial);
+    sceneGraph.add(skyObject2);
+    skyObject2.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 2);
+    skyObject2.receiveShadow = true;
+    skyObject2.position.set(7.5, 7.5, 0)
+
+    // ************************** //
     // Create the lake
     // ************************** //
 
@@ -741,18 +790,19 @@ function load3DObjects(sceneGraph) {
 
     const lake1 = new THREE.Mesh(lake_geometry, lake_material);
     lake1.rotation.x = -Math.PI / 2
-    lake1.position.y = 0.001 // avoid z-fighting
+    lake1.position.y = 0.002 // avoid z-fighting
     lake1.scale.y = 0.8
     lake1.receiveShadow = true;
 
     const lake2 = new THREE.Mesh(lake_geometry, lake_material);
     lake2.rotation.x = -Math.PI / 2
-    lake2.position.set(4, 0.001, 2)
+    lake2.position.set(4, 0.002, 2)
     lake2.scale.set(0.3, 0.3, 0.3);
     lake2.receiveShadow = true;
 
     lake.add(lake1, lake2);
-    lake.position.set(2, 0, 0)
+    lake.position.set(2, 0, 0);
+    lake.name = "lake";
     sceneGraph.add(lake);
 
     // ************************** //
@@ -1018,6 +1068,7 @@ function load3DObjects(sceneGraph) {
         '/models/Duck/glTF/Duck.gltf',
         (gltf) => {
             let duck = gltf.scene.children[0]
+            duck.scale.set(0.007, 0.007, 0.007)
             sceneGraph.add(duck)
             duck.position.x = 2
 
@@ -1074,9 +1125,38 @@ function load3DObjects(sceneGraph) {
             while (gltf.scene.children.length) {
                 let table_part = gltf.scene.children[0]
                 table_part.position.set(-13, -1.35, 1)
-                // table_part.scale.set(0.03, 0.03, 0.03)
                 sceneGraph.add(table_part)
             }
+        }
+    )
+
+    // trees
+    gltfLoader.load(
+        '/models/Trees/scene.gltf',
+        (gltf) => {
+            while (gltf.scene.children.length) {
+                let tree_part = gltf.scene.children[0]
+                tree_part.position.set(4, 0, -4)
+                tree_part.scale.set(20, 20, 20)
+                // tree_part.castShadow = true
+                if (tree_part.isMesh) { tree_part.castShadow = true; }
+                sceneGraph.add(tree_part)
+            }
+        }
+    )
+
+    // fox
+    gltfLoader.load(
+        '/models/Fox/glTF/Fox.gltf',
+        (gltf) => {
+            gltf.scene.scale.set(0.04, 0.04, 0.04)
+            gltf.scene.position.set(0, 0, -4)
+            gltf.scene.rotation.y = Math.PI / 3
+            sceneGraph.add(gltf.scene)
+
+            mixer = new THREE.AnimationMixer(gltf.scene)
+            const action = mixer.clipAction(gltf.animations[0])
+            action.play()
         }
     )
 
@@ -1104,8 +1184,6 @@ const elbow2 = sceneElements.sceneGraph.getObjectByName("elbow2");
 
 const eyebrow1 = sceneElements.sceneGraph.getObjectByName("eyebrow1");
 const eyebrow2 = sceneElements.sceneGraph.getObjectByName("eyebrow2");
-// const duck = sceneElements.sceneGraph.getObjectByName("duck");
-// console.log(duck)
 
 let neutral_position_called = true;
 neutral_talking(true, false);
@@ -1129,7 +1207,7 @@ function computeFrame(time) {
     elbow2Joint.position.set(elbow2.position.x, elbow2.position.y, elbow2.position.z);
 
     // walking around
-    if (keyD && robot.position.x < -3) {
+    if (keyD && robot.position.x < 5) {
         robot.translateX(dispX);
         neutral_position_called = false;
     }
@@ -1150,6 +1228,11 @@ function computeFrame(time) {
             neutral_position();
             neutral_position_called = true;
         }
+    }
+
+    // fox animation
+    if (mixer) {
+        mixer.update(delta)
     }
 
     // Rendering
